@@ -7,64 +7,64 @@
         height: auto;
         margin: 10px;
       }
-  #circleForm {
-    background-color: #f8f8f8;
-    border-radius: 10px;
-    padding: 20px;
-    font-family: sans-serif;
-  }
+      #circleForm {
+        background-color: #f8f8f8;
+        border-radius: 10px;
+        padding: 10px;
+        font-family: sans-serif;
+      }
 
-  label {
-    font-size: 18px;
-    margin-bottom: 5px;
-    display: block;
-  }
+      label {
+        font-size: 12px;
+        margin-bottom: 1px;
+        display: block;
+      }
 
-  input[type="text"],
-  input[type="number"],
-  input[type="button"] {
-    height: 40px;
-    width: 100%;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    margin-bottom: 15px;
-    padding: 10px;
-    box-sizing: border-box;
-    transition: border-color 0.3s ease-in-out;
-  }
+      input[type="text"],
+      input[type="number"] {
+        height: 20px;
+        width: 100%;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        margin-bottom: 4px;
+        padding: 10px;
+        box-sizing: border-box;
+        transition: border-color 0.3s ease-in-out;
+      }
 
-  input[type="text"]:hover,
-  input[type="number"]:hover,
-  input[type="button"]:hover {
-    border-color: #333;
-  }
+      input[type="text"]:hover,
+      input[type="number"]:hover,
+      input[type="button"]:hover {
+        border-color: #333;
+      }
 
-  input[type="text"]:focus,
-  input[type="number"]:focus,
-  input[type="button"]:focus {
-    border-color: #555;
-    outline: none;
-  }
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      input[type="button"]:focus {
+        border-color: #555;
+        outline: none;
+      }
 
-  input[type="button"] {
-    background: linear-gradient(to bottom, #4f94c3 0%, #3c79a1 100%);
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    margin-top: 15px;
-    text-align: center;
-    text-transform: uppercase;
-    padding: 10px 20px;
-    transition: opacity 0.3s ease-in-out;
-  }
+      input[type="button"] {
+        background: linear-gradient(to bottom, #4f94c3 0%, #3c79a1 100%);
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 10px;
+        text-align: center;
+        text-transform: uppercase;
+        padding: 16px 20px;
+        transition: opacity 0.3s ease-in-out;
+        width: 100%;
+        border-radius: 5px;
+      }
 
-  input[type="button"]:hover {
-    opacity: 0.8;
-  }
-</style>
+      input[type="button"]:hover {
+        opacity: 0.8;
+      }
     </style>
   </head>
   <body>
@@ -93,7 +93,7 @@
         step="1"
         value="25.4"
       /><br />
-      <label for="holeSize">Hole size:</label>
+      <label for="holeSize">Hole size (mm):</label>
       <input
         type="number"
         id="holeSize"
@@ -103,7 +103,7 @@
         step="1"
         value="1"
       /><br />
-      <label for="offset">Engrave circle offset:</label>
+      <label for="offset">Engrave circle offset (mm):</label>
       <input
         type="number"
         id="offset"
@@ -113,7 +113,7 @@
         step="1"
         value="1"
       /><br />
-      <label for="padding">Text padding:</label>
+      <label for="padding">Text padding (mm):</label>
       <input
         type="number"
         id="padding"
@@ -123,7 +123,7 @@
         step="1"
         value="5"
       /><br />
-      <label for="hSpacing">Horizontal spacing between circles:</label>
+      <label for="hSpacing">Horizontal spacing between circles (mm):</label>
       <input
         type="number"
         id="hSpacing"
@@ -133,7 +133,7 @@
         step="1"
         value="1"
       /><br />
-      <label for="vSpacing">Vertical spacing between circles:</label>
+      <label for="vSpacing">Vertical spacing between circles (mm):</label>
       <input
         type="number"
         id="vSpacing"
@@ -154,7 +154,6 @@
         value="3"
       /><br />
 
-      <input type="button" value="Generate Circles" onclick="init()" />
       <input type="button" value="Download SVG" onclick="downloadSVG()" />
     </form>
     <svg
@@ -193,6 +192,22 @@
 
         text.setAttribute("font-size", scaleFactor * 50);
       };
+
+      function debounce(func, delay) {
+        let timerId;
+        return function () {
+          clearTimeout(timerId);
+          timerId = setTimeout(() => {
+            func.apply(this, arguments);
+          }, delay);
+        };
+      }
+
+      function handleInputChange() {
+        debounce(() => {
+          init();
+        }, 1000)();
+      }
 
       const generateCircles = (
         names,
@@ -285,6 +300,9 @@
       };
 
       init();
+      document.querySelectorAll("#circleForm input").forEach((input) => {
+        input.addEventListener("change", handleInputChange);
+      });
     </script>
   </body>
 </html>
