@@ -64,25 +64,35 @@
         step="1"
         value="5"
       /><br /><br />
-      <label for="spacing">Spacing between circles:</label>
+      <label for="hSpacing">Horizontal spacing between circles:</label>
       <input
         type="number"
-        id="spacing"
-        name="spacing"
+        id="hSpacing"
+        name="hSpacing"
         min="0"
         max="100"
         step="1"
         value="3"
       /><br /><br />
-      <label for="numRows">Number of Rows:</label>
+      <label for="vSpacing">Vertical spacing between circles:</label>
       <input
         type="number"
-        id="numRows"
-        name="numRows"
-        min="1"
-        max="10"
+        id="vSpacing"
+        name="vSpacing"
+        min="-100"
+        max="100"
         step="1"
-        value="1"
+        value="0"
+      /><br /><br />
+      <label for="tokensPerRow">Tokens per Row:</label>
+      <input
+        type="number"
+        id="tokensPerRow"
+        name="tokensPerRow"
+        min="1"
+        max="100"
+        step="1"
+        value="5"
       /><br /><br />
 
       <input type="button" value="Generate Circles" onclick="init()" />
@@ -131,14 +141,21 @@
         circleSize,
         offset,
         padding,
-        spacing,
-        holeSize
+        hSpacing,
+        vSpacing,
+        holeSize,
+        tokensPerRow
       ) => {
         const mainSVG = document.getElementById("mainSVG");
-        const totalSVGWidth = (circleSize + spacing) * names.length - spacing;
+        const totalSVGWidth = (circleSize + hSpacing) * names.length - hSpacing;
+        const numRows = Math.ceil(names.length / tokensPerRow);
+        const totalSVGHeight = (circleSize + hSpacing) * numRows - hSpacing;
         mainSVG.setAttribute("width", `${totalSVGWidth}mm`);
-        mainSVG.setAttribute("height", `${circleSize}mm`);
-        mainSVG.setAttribute("viewBox", `0 0 ${totalSVGWidth} ${circleSize}`);
+        mainSVG.setAttribute("height", `${totalSVGHeight}mm`);
+        mainSVG.setAttribute(
+          "viewBox",
+          `0 0 ${totalSVGWidth} ${totalSVGHeight}`
+        );
         mainSVG.innerHTML = "";
 
         names.forEach((name, index) => {
@@ -155,10 +172,13 @@
           resizeText(id, circleSize, offset, padding, "word");
           resizeText(id, circleSize, offset, padding, "name");
           const group = document.getElementById(id);
-          group.setAttribute(
-            "transform",
-            `translate(${index * (circleSize + spacing)}, 0)`
-          );
+          const xOffset =
+            (index % tokensPerRow) * (circleSize + hSpacing) +
+            ((circleSize + hSpacing) * (Math.floor(index / tokensPerRow) % 2)) /
+              2;
+          const yOffset =
+            Math.floor(index / tokensPerRow) * (circleSize + vSpacing);
+          group.setAttribute("transform", `translate(${xOffset}, ${yOffset})`);
         });
       };
 
@@ -169,19 +189,25 @@
           document.getElementById("circleSize").value
         );
         const offset = parseInt(document.getElementById("offset").value);
-        const spacing = parseInt(document.getElementById("spacing").value);
+        const hSpacing = parseInt(document.getElementById("hSpacing").value);
+        const vSpacing = parseInt(document.getElementById("vSpacing").value);
         const padding = parseInt(document.getElementById("padding").value);
         const names = namesStr.split(",").map((name) => name.trim());
         const words = wordsStr.split(",").map((word) => word.trim());
         const holeSize = parseInt(document.getElementById("holeSize").value);
+        const tokensPerRow = parseInt(
+          document.getElementById("tokensPerRow").value
+        );
         generateCircles(
           names,
           words,
           circleSize,
           offset,
           padding,
-          spacing,
-          holeSize
+          hSpacing,
+          vSpacing,
+          holeSize,
+          tokensPerRow
         );
       }
 
