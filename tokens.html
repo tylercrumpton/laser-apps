@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      svg {
+        max-width: 100%;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="circleForm">
+      <label for="names">Names (comma-separated):</label>
+      <input
+        type="text"
+        id="names"
+        name="names"
+        value="John Doe, Jane Smith, Alice Johnson, Bob Brown, Eva Adams"
+      /><br /><br />
+      <label for="words">Words (comma-separated):</label>
+      <input
+        type="text"
+        id="words"
+        name="words"
+        value="Courageous, Bombastic, Daring, Energetic, Fearless"
+      /><br /><br />
+      <label for="circleSize">Circle size (mm):</label>
+      <input
+        type="number"
+        id="circleSize"
+        name="circleSize"
+        min="10"
+        max="300"
+        step="1"
+        value="25.4"
+      /><br /><br />
+      <label for="holeSize">Hole size:</label>
+      <input
+        type="number"
+        id="holeSize"
+        name="holeSize"
+        min=".1"
+        max="300"
+        step="1"
+        value="1"
+      /><br /><br />
+      <label for="offset">Engrave circle offset:</label>
+      <input
+        type="number"
+        id="offset"
+        name="offset"
+        min="0"
+        max="100"
+        step="1"
+        value="1"
+      /><br /><br />
+      <label for="padding">Text padding:</label>
+      <input
+        type="number"
+        id="padding"
+        name="padding"
+        min="0"
+        max="100"
+        step="1"
+        value="5"
+      /><br /><br />
+      <label for="spacing">Spacing between circles:</label>
+      <input
+        type="number"
+        id="spacing"
+        name="spacing"
+        min="0"
+        max="100"
+        step="1"
+        value="3"
+      /><br /><br />
+      <label for="numRows">Number of Rows:</label>
+      <input
+        type="number"
+        id="numRows"
+        name="numRows"
+        min="1"
+        max="10"
+        step="1"
+        value="1"
+      /><br /><br />
+
+      <input type="button" value="Generate Circles" onclick="init()" />
+      <input type="button" value="Download SVG" onclick="downloadSVG()" />
+    </form>
+    <svg
+      id="mainSVG"
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+    ></svg>
+    <script>
+      const createCircleWithName = (name, word, id, size, offset, holeSize) => {
+        return `
+        <g id="${id}">
+          <circle cx="${size / 2}" cy="${size / 2}" r="${
+          size / 2
+        }" stroke="red" stroke-width="0.5" fill="none"/>
+          <circle cx="${size / 2}" cy="${size / 2}" r="${
+          size / 2 - offset
+        }" stroke="blue" stroke-width="0.5" fill="none"/>
+        <circle cx="${size / 2}" cy="${
+          offset + holeSize * 2
+        }" r="${holeSize}" stroke="red" stroke-width="0.5" fill="none"/>
+        <text x="${size / 2}" y="${
+          size / 2
+        }" dominant-baseline="middle" text-anchor="middle" font-size="50" font-family="Montserrat, Helvetica, Arial" font-weight="600" class="word" fill="yellow">${word}</text>
+          <text x="${size / 2}" y="${
+          size / 2
+        }" dominant-baseline="middle" text-anchor="middle" font-size="50" font-family="Montserrat, Helvetica, Arial" font-weight="600" class="name" fill="green">${name}</text>
+        </g>
+      `;
+      };
+
+      const resizeText = (id, size, offset, padding, elementClass) => {
+        const text = document.querySelector(`#${id} text.${elementClass}`);
+        const bbox = text.getBBox();
+        const maxWidth = size * offset - padding;
+        const scaleFactor = maxWidth / bbox.width;
+
+        text.setAttribute("font-size", scaleFactor * 50);
+      };
+
+      const generateCircles = (
+        names,
+        words,
+        circleSize,
+        offset,
+        padding,
+        spacing,
+        holeSize
+      ) => {
+        const mainSVG = document.getElementById("mainSVG");
+        const totalSVGWidth = (circleSize + spacing) * names.length - spacing;
+        mainSVG.setAttribute("width", `${totalSVGWidth}mm`);
+        mainSVG.setAttribute("height", `${circleSize}mm`);
+        mainSVG.setAttribute("viewBox", `0 0 ${totalSVGWidth} ${circleSize}`);
+        mainSVG.innerHTML = "";
+
+        names.forEach((name, index) => {
+          const id = `circle-${index}`;
+          const circleWithName = createCircleWithName(
+            name,
+            words[index],
+            id,
+            circleSize,
+            offset,
+            holeSize
+          );
+          mainSVG.insertAdjacentHTML("beforeend", circleWithName.trim());
+          resizeText(id, circleSize, offset, padding, "word");
+          resizeText(id, circleSize, offset, padding, "name");
+          const group = document.getElementById(id);
+          group.setAttribute(
+            "transform",
+            `translate(${index * (circleSize + spacing)}, 0)`
+          );
+        });
+      };
+
+      function init() {
+        const namesStr = document.getElementById("names").value;
+        const wordsStr = document.getElementById("words").value;
+        const circleSize = parseInt(
+          document.getElementById("circleSize").value
+        );
+        const offset = parseInt(document.getElementById("offset").value);
+        const spacing = parseInt(document.getElementById("spacing").value);
+        const padding = parseInt(document.getElementById("padding").value);
+        const names = namesStr.split(",").map((name) => name.trim());
+        const words = wordsStr.split(",").map((word) => word.trim());
+        const holeSize = parseInt(document.getElementById("holeSize").value);
+        generateCircles(
+          names,
+          words,
+          circleSize,
+          offset,
+          padding,
+          spacing,
+          holeSize
+        );
+      }
+
+      const downloadSVG = () => {
+        const svg = document.getElementById("mainSVG");
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgData], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        const downloadLink = document.createElement("a");
+        downloadLink.href = url;
+        downloadLink.download = "circles.svg";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+      };
+
+      init();
+    </script>
+  </body>
+</html>
